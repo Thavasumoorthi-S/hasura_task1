@@ -1,25 +1,38 @@
-import logo from './logo.svg';
 import './App.css';
+import Todo from './component/Todo';
+import { ApolloClient, InMemoryCache, ApolloProvider,createHttpLink} from '@apollo/client';
+import { setContext } from '@apollo/client/link/context';
+
 
 function App() {
+
+  const httpLink = createHttpLink({
+    uri: 'http://localhost:8080/v1/graphql', 
+  });
+  
+  const authLink = setContext((_, { headers }) => {
+    const hasuraAdminSecret = 'Welcome@ta';
+  
+    return {
+      headers: {
+        ...headers,
+        'x-hasura-admin-secret': hasuraAdminSecret,
+      },
+    };
+  });
+  
+  const client = new ApolloClient({
+    link: authLink.concat(httpLink),
+    cache: new InMemoryCache(),
+  });
+  
+
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+    <ApolloProvider client={client}>
+      <Todo/>
+    </ApolloProvider>  
+    );
 }
 
 export default App;
